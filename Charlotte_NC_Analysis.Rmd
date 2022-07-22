@@ -1,0 +1,243 @@
+---
+title: "Charlotte Census data analysis"
+author: Morgan Heinly
+date: July 22, 2022
+output:
+      
+    html_document:
+        code_folding: none
+        df_print: paged
+        highlight: tango
+        theme: flatly
+        number_sections: yes
+        toc: yes
+        toc_depth: 2
+editor_options:
+  chunk_output_type: console
+
+
+---
+
+## load all necessary libraries
+
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = FALSE, 
+                      message = FALSE,
+                      warning = FALSE)
+
+
+```
+
+```{r}
+library(tidycensus)
+library(tidyverse)
+library(remotes)
+library(stringr)
+library(scales)
+library(plotly)
+library(tigris)
+options(tigris_use_cache = TRUE)
+library(patchwork)
+library(mapdeck)
+
+```
+
+## load in your api key for tidycensus
+
+```{r}
+
+api_key <-  '941ea2a2c4ffb8593729796459f5624ea053ea1c'
+
+census_api_key(api_key,install = TRUE, overwrite = TRUE)
+
+readRenviron("~/.Renviron")
+
+```
+
+## test a couple examples getting data with the API 
+
+```{r}
+
+options(tigris_use_cache = TRUE)
+
+NC_med_house_income <- get_acs(
+  state = "NC",
+  geography = "tract",
+  variables = "B19013_001",
+  geometry = TRUE,
+  year = 2020
+)
+
+head(NC_med_house_income) # view the data
+
+```
+
+## plot the results
+
+```{r}
+
+NC_med_house_income %>%
+  ggplot(aes(fill = estimate)) + 
+  geom_sf(color = NA,na.rm = TRUE) + 
+  scale_fill_viridis_c(option = "viridis") +
+  scale_fill_continuous(labels = scales::label_dollar(scale = .001,suffix = "K")) +
+  theme_void() +
+  ggtitle("2020 North Carolina median house hold income estimates by county") +
+  theme(plot.title = element_text(hjust = 0.6,vjust = 1, size = 15)) + theme(legend.position = c(.35,.15))
+
+```
+
+## take a look at age and sex breakdown for 2019
+
+```{r}
+
+
+sex_breakdown <- get_estimates(
+  geography = "state",
+  state = "NC",
+  product = "characteristics",
+  breakdown = c("SEX", "AGEGROUP"),
+  breakdown_labels = TRUE,
+  year = 2019
+)
+
+sex_breakdown <- sex_breakdown %>%
+  filter(str_detect(AGEGROUP, "^Age"),
+         SEX != "Both sexes") %>%
+  mutate(value = ifelse(SEX == "Male", -value, value))
+
+```
+
+## visualize the data
+
+```{r}
+
+
+NC_pyramid <- ggplot(sex_breakdown, 
+                       aes(x = value, 
+                           y = AGEGROUP, 
+                           fill = SEX)) + 
+  geom_col(alpha = 0.9) + 
+  theme_minimal() +
+  scale_x_continuous(
+    labels = ~ number_format(scale = .001, suffix = "k")(abs(.x)),
+    limits = 400000 * c(-1,1)
+  ) + 
+  scale_y_discrete(labels = ~ str_remove_all(.x, "Age\\s|\\syears")) + 
+  scale_fill_manual(values = c("pink", "lightblue")) + 
+  labs(x = "", 
+       y = "2019 Census Bureau population estimate", 
+       title = "Population structure in North Carolina", 
+       fill = "", 
+       caption = "Data source: US Census Bureau population estimates & tidycensus R package")
+
+NC_pyramid
+
+```
+
+
+## analyze move in / move out data in Charlotte from 2015 to 2020
+
+## obtain access token for mapdeck
+
+```{r}
+token <- "pk.eyJ1IjoibW9yZ2FuaGVpbmx5IiwiYSI6ImNsNXNqMXdudjA3MjczZ21wb3RpMWs0MDQifQ.ZQFnbglE_9JBKOp5yrsxgQ"
+
+```
+
+## get the data
+
+```{r}
+
+CLT_flows <- get_flows(
+  geography = "metropolitan statistical area",
+  year = 2019,
+  geometry = TRUE
+)
+
+
+CLT_flows <- CLT_flows %>%
+  filter(str_detect(FULL1_NAME,"Charlotte-Concord"))
+
+```
+
+# top 25 cities moved to charlotte, nc
+
+```{r}
+
+top_moved_in <- CLT_flows %>%
+  filter(!is.na(GEOID2), variable == "MOVEDIN") %>%
+  slice_max(n = 25, order_by = estimate) %>%
+  mutate(width = estimate / 500,
+         tooltip = paste0(
+           scales::comma(estimate * 5, 1),
+           " people moved from ", str_remove(FULL2_NAME, "Metro Area"),
+           " to ", str_remove(FULL1_NAME, "Metro Area"), " between 2015 and 2019"
+         )
+  )
+
+```
+
+## create moved in map from data
+
+```{r Mapping inflows, echo=FALSE, message=FALSE, out.width = "100%",warning=FALSE}
+
+####### create moved from map #################
+
+G3 <- top_moved_in %>% 
+  mapdeck(token = token, style = mapdeck_style("dark"), pitch = 45) %>% 
+  add_arc(
+    origin = "centroid1",
+    destination = "centroid2", 
+    palette = "plasma",
+    stroke_width = "width",
+    auto_highlight = TRUE,
+    highlight_colour = "#0080FF80",
+    tooltip = "tooltip"
+  )
+
+G3
+
+```
+
+## create moved out map from data
+
+```{r Mapping outflows, echo=FALSE, message=FALSE, out.width = "100%",warning=FALSE}
+
+top_moved_out <- CLT_flows %>%
+  filter(!is.na(GEOID2), variable == "MOVEDOUT") %>%
+  slice_max(n = 25, order_by = estimate) %>%
+  mutate(width = estimate / 500,
+         tooltip = paste0(
+           scales::comma(estimate * 5, 1),
+           " people moved to ", str_remove(FULL2_NAME, "Metro Area"),
+           " from ", str_remove(FULL1_NAME, "Metro Area"), " between 2015 and 2019"
+         )
+  )
+
+G4 <- top_moved_out %>% 
+  mapdeck(token = token, style = mapdeck_style("dark"), pitch = 45) %>% 
+  add_arc(
+    origin = "centroid1",
+    destination = "centroid2", 
+    palette = "heat",
+    stroke_width = "width",
+    auto_highlight = TRUE,
+    highlight_colour = "#0080FF80",
+    tooltip = "tooltip"
+  )
+
+G4
+
+
+```
+
+
+
+
+
+
+
+
