@@ -1,5 +1,5 @@
 ---
-title: "Charlotte Census data analysis"
+title: "Vizualising City Migration Data with TidyCensus"
 author: Morgan Heinly
 date: July 22, 2022
 output:
@@ -9,17 +9,26 @@ output:
         df_print: paged
         highlight: tango
         theme: flatly
-        number_sections: yes
-        toc: yes
-        toc_depth: 2
 editor_options:
   chunk_output_type: console
-
-
 ---
 
-## load all necessary libraries
+### Census flow data for Charlotte, NC
 
+At the time of this brief analysis, __Charlotte, NC__ was (and has been for the past few years) one of the fastest growing cities in the United States. Most sources report that over 100 people move to CLT every day. If sustained, these rapid migrations can have both desirable and undesirable consequences. An obvious example is the real estate market. Average home prices have more than doubled over the past 7 years: a favorable phenomenon for longtime owners and real estate investors, but burdensome for restaurants, residential newcomers and tenants.
+
+As an 8 year resident of Charlotte, I've also witnessed changes in other areas since I moved here in 2014, such as cultural shifts, growing demographic diversity, infrastructure expansion and several others.
+
+
+Understanding how all these different factors interact and transform a city can be a a complex undertaking and one that's way outside the scope of this analysis; but for starters, sometimes it can be helpful to narrow our focus to a single factor, pull some data, and explore through visualizations - a necessary step before any real statistical modeling can be done.
+
+__Culture shifts__ seem difficult to quantify, but for the sake of demonstration, let's see what we can come up with. 
+
+Since culture can generally be described by the collective characteristics of a group within a geographical area, then perhaps one approach could be analyzing areas or cities that new Charlotte residents are moving from. If we see unusual patterns or heavy move-in traffic out of cities with known cultural attributes, this could partly aide in describing Charlotte's cultural evolution.
+
+
+To showcase how this could be done, We'll use the [Tidycencus]('https://cran.r-project.org/web/packages/tidycensus/index.html') package to pull in data from 2015 to 2019 and look at which cities most people moved from over those years. 
+_Note - 1015 to 2019 is the latest 5 year estimates available for these data points._
 
 ```{r setup, include=FALSE}
 
@@ -41,12 +50,16 @@ library(tigris)
 options(tigris_use_cache = TRUE)
 library(patchwork)
 library(mapdeck)
+library(RColorBrewer)
+library(DT)
 
 ```
 
-## load in your api key for tidycensus
 
-```{r}
+
+```{r,include=FALSE}
+
+## load in your api key for tidycensus
 
 api_key <-  '941ea2a2c4ffb8593729796459f5624ea053ea1c'
 
@@ -56,9 +69,11 @@ readRenviron("~/.Renviron")
 
 ```
 
-## test a couple examples getting data with the API 
 
-```{r}
+
+```{r,include=FALSE}
+
+## test a couple examples getting data with the API 
 
 options(tigris_use_cache = TRUE)
 
@@ -74,9 +89,11 @@ head(NC_med_house_income) # view the data
 
 ```
 
-## plot the results
 
-```{r}
+
+```{r,include=FALSE}
+
+## plot the results
 
 NC_med_house_income %>%
   ggplot(aes(fill = estimate)) + 
@@ -89,10 +106,11 @@ NC_med_house_income %>%
 
 ```
 
+
+
+```{r,include=FALSE}
+
 ## take a look at age and sex breakdown for 2019
-
-```{r}
-
 
 sex_breakdown <- get_estimates(
   geography = "state",
@@ -110,10 +128,11 @@ sex_breakdown <- sex_breakdown %>%
 
 ```
 
+
+
+```{r,include=FALSE}
+
 ## visualize the data
-
-```{r}
-
 
 NC_pyramid <- ggplot(sex_breakdown, 
                        aes(x = value, 
@@ -138,18 +157,21 @@ NC_pyramid
 ```
 
 
+```{r,include=FALSE}
+
 ## analyze move in / move out data in Charlotte from 2015 to 2020
 
 ## obtain access token for mapdeck
 
-```{r}
 token <- "pk.eyJ1IjoibW9yZ2FuaGVpbmx5IiwiYSI6ImNsNXNqMXdudjA3MjczZ21wb3RpMWs0MDQifQ.ZQFnbglE_9JBKOp5yrsxgQ"
 
 ```
 
-## get the data
 
-```{r}
+
+```{r,include=FALSE}
+
+## get the data
 
 CLT_flows <- get_flows(
   geography = "metropolitan statistical area",
@@ -163,9 +185,11 @@ CLT_flows <- CLT_flows %>%
 
 ```
 
-# top 25 cities moved to charlotte, nc
 
-```{r}
+
+```{r,include=FALSE}
+
+# top 25 cities moved to Charlotte, NC
 
 top_moved_in <- CLT_flows %>%
   filter(!is.na(GEOID2), variable == "MOVEDIN") %>%
@@ -173,14 +197,18 @@ top_moved_in <- CLT_flows %>%
   mutate(width = estimate / 500,
          tooltip = paste0(
            scales::comma(estimate * 5, 1),
-           " people moved from ", str_remove(FULL2_NAME, "Metro Area"),
-           " to ", str_remove(FULL1_NAME, "Metro Area"), " between 2015 and 2019"
+           " people moved from ", str_remove(FULL2_NAME, "Metro Area"), " to Charlotte, NC betweem 2015 and 2019 "
+           
          )
   )
 
 ```
 
-## create moved in map from data
+### Mapping moving-in / move out data
+
+#### What were the top 25 cities origination cities for those __MOVING TO__ Charlotte during this time?
+
+Use the interactive maps below to explore
 
 ```{r Mapping inflows, echo=FALSE, message=FALSE, out.width = "100%",warning=FALSE}
 
@@ -191,7 +219,7 @@ G3 <- top_moved_in %>%
   add_arc(
     origin = "centroid1",
     destination = "centroid2", 
-    palette = "plasma",
+    palette = "viridis",
     stroke_width = "width",
     auto_highlight = TRUE,
     highlight_colour = "#0080FF80",
@@ -201,8 +229,11 @@ G3 <- top_moved_in %>%
 G3
 
 ```
+  
+  
+#### What were the top 25 destination cities for those __MOVING AWAY__ from Charlotte during this time?
 
-## create moved out map from data
+Just for fun, we could also take a look at which cities Charlotte residents were moving to.
 
 ```{r Mapping outflows, echo=FALSE, message=FALSE, out.width = "100%",warning=FALSE}
 
@@ -213,7 +244,7 @@ top_moved_out <- CLT_flows %>%
          tooltip = paste0(
            scales::comma(estimate * 5, 1),
            " people moved to ", str_remove(FULL2_NAME, "Metro Area"),
-           " from ", str_remove(FULL1_NAME, "Metro Area"), " between 2015 and 2019"
+           " from Charlotte, NC between 2015 and 2019"
          )
   )
 
@@ -222,7 +253,7 @@ G4 <- top_moved_out %>%
   add_arc(
     origin = "centroid1",
     destination = "centroid2", 
-    palette = "heat",
+    palette = "magma",
     stroke_width = "width",
     auto_highlight = TRUE,
     highlight_colour = "#0080FF80",
@@ -234,10 +265,156 @@ G4
 
 ```
 
+### Observations
+
+You can take the analysis in many different directions from here, but right off the bat, we see a few interesting things
+
+__Moved in__
+
+- Most movers come from the New York City area (more than double next highest city at 44K movers over the 5 yr time period)
+- Top cities are mostly from the North and South East
+
+__Moved out__
+
+- On average, more people (and cities) are moving to Charlotte than away
+- Roughly 4X as many NYC residents moved to Charlotte than vice-versa
+- Raleigh (another fast growing city) appears to be an outlier. More people moved from Charlotte to Raleigh than vice-versa
+
+
+```{r, include=FALSE}
+
+## Looking at 2009-2013
+
+CLT_flows_2013 <- get_flows(
+  geography = "metropolitan statistical area",
+  year = 2013,
+  geometry = TRUE
+)
+
+
+CLT_flows_2013 <- CLT_flows_2013 %>%
+  filter(str_detect(FULL1_NAME,"Charlotte-Concord"))
+
+```
+
+
+```{r, include=FALSE}
+
+## visualize 2009-2013 data
+
+top_moved_in_2013 <- CLT_flows_2013 %>%
+  filter(!is.na(GEOID2), variable == "MOVEDIN") %>%
+  filter(estimate > 500) %>%
+  mutate(width = estimate / 500,
+         tooltip = paste0(
+           scales::comma(estimate * 5, 1),
+           " people moved from ", str_remove(FULL2_NAME, "Metro Area"),
+           " to ", str_remove(FULL1_NAME, "Metro Area"), " between 2009 and 2013"
+         )
+  )
+
+```
+
+
+```{r,include=FALSE}
+
+G5 <- top_moved_in_2013 %>% 
+  mapdeck(token = token, style = mapdeck_style("dark"), pitch = 45) %>% 
+  add_arc(
+    origin = "centroid1",
+    destination = "centroid2", 
+    palette = "plasma",
+    stroke_width = "width",
+    auto_highlight = TRUE,
+    highlight_colour = "#0080FF80",
+    tooltip = "tooltip"
+  )
+
+G5
 
 
 
+```
 
+### What other things could we analyze?  
+
+#### Potential newcomers  
+
+I was also curious about newcomers. In other words, which cities had no reported estimates or estimates of 0 from 2009 to 2013, that showed up in the 2015 - 2019 estimates
+
+```{r}
+## what cities reported no movers in from 2009 to 2013, but appear in 2015-2019 estimates
+
+new_comers_2019 <- CLT_flows %>%
+  tibble() %>%
+  filter(!is.na(GEOID2), variable == "MOVEDIN") %>%
+  anti_join((CLT_flows_2013 %>% tibble() %>% filter(!is.na(GEOID2),variable == "MOVEDIN")), by = "GEOID2") %>%
+  arrange(-estimate) %>% slice_max(n = 25,order_by = estimate) %>%
+  mutate(estimate = estimate *5) %>%
+  slice_max(n = 15, order_by = estimate) %>%
+  mutate(FULL2_NAME = str_remove(FULL2_NAME, "Metro Area"))
+  
+  # select columns for ggplot
+G6 <- new_comers_2019 %>%
+  rename(Moved_From = FULL2_NAME) %>%
+  select(Moved_From, estimate) %>%
+  
+  # plot the data
+  
+  ggplot(aes(reorder(Moved_From,estimate), estimate)) +
+  geom_point(size = 4, color = "midnightblue", alpha = .5) +
+  coord_flip() +
+  theme_light() +
+  labs(y = "Estimated number of newcomers",
+       x = "Origin City",
+       title = "New movers to Charlotte, NC 2015-2019",
+       subtitle = "Top 15 new cities not reported in 2009 to 2013 estimates")
+  
+  
+G6
+
+
+
+```
+
+#### Growth rates  
+How about which cities with over 100 annual movers had the highest growth rates between the 2 periods?  
+
+
+```{r}
+## For annual estimated movers > 100 for both time periods, which metropolitan area had the highest growth rate?
+
+growth_cities<- CLT_flows %>%
+  tibble() %>%
+  filter(!is.na(GEOID2), variable == "MOVEDIN",estimate > 50) %>%
+  inner_join((CLT_flows_2013 %>% tibble() %>% filter(!is.na(GEOID2),variable == "MOVEDIN", estimate > 100)), by = "GEOID2") %>%
+  mutate(growth_rate = (estimate.x / estimate.y)-1) %>%
+    arrange(-growth_rate)
+  
+  # plot the data
+  
+growth_cities %>%
+  slice_max(n = 60, growth_rate) %>%
+  mutate(growth_rate = round(growth_rate,2)) %>% 
+  mutate(growth_rate = scales::percent(growth_rate)) %>% 
+  rename(Origin_City = FULL2_NAME.y) %>%
+  
+  select(Origin_City,
+         '2009 - 2013 Annual Est' = estimate.y,
+         '2015 - 2019 Annual Est' = estimate.x,
+         growth_rate) %>% 
+  mutate(Origin_City = str_remove(Origin_City,"Metro Area")) %>%
+  
+  DT::datatable(options = list(pageLength = 20))
+  
+
+```
+
+### Closing thoughts
+
+In this exercise, there was no definitive conclusion or rigorous statistical analysis performed. However, we were able to quickly identify some interesting trends from a few charts and maps.
+
+Using the [Tidycencus]('https://cran.r-project.org/web/packages/tidycensus/index.html') package along with sleek visualization libraries such as [Mapview]('https://r-spatial.github.io/mapview/') and  [Mapdeck]('https://symbolixau.github.io/mapdeck/articles/mapdeck.html'), analysts can access a wide array of U.S. Census data and use for exploratory analysis or even feature selection for more advanced modeling.
 
 
 
