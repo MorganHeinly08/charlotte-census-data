@@ -1,5 +1,5 @@
 ---
-title: "Vizualising City Migration Data with TidyCensus"
+title: "Visualizing City Migration Data with TidyCensus"
 author: Morgan Heinly
 date: July 22, 2022
 output:
@@ -27,7 +27,7 @@ __Culture shifts__ seem difficult to quantify, but for the sake of demonstration
 Since culture can generally be described by the collective characteristics of a group within a geographical area, then perhaps one approach could be analyzing areas or cities that new Charlotte residents are moving from. If we see unusual patterns or heavy move-in traffic out of cities with known cultural attributes, this could partly aide in describing Charlotte's cultural evolution.
 
 
-To showcase how this could be done, We'll use the [Tidycencus]('https://cran.r-project.org/web/packages/tidycensus/index.html') package to pull in data from 2015 to 2019 and look at which cities most people moved from over those years. 
+To showcase how this could be done, we'll use the [Tidycencus]('https://cran.r-project.org/web/packages/tidycensus/index.html') package to pull in data from 2015 to 2019 and look at which cities most people moved from over those years. 
 _Note - 1015 to 2019 is the latest 5 year estimates available for these data points._
 
 ```{r setup, include=FALSE}
@@ -206,7 +206,7 @@ top_moved_in <- CLT_flows %>%
 
 ### Mapping moving-in / move out data
 
-#### What were the top 25 cities origination cities for those __MOVING TO__ Charlotte during this time?
+#### What were the top 25 origination cities for those __moving to__ Charlotte during this time?
 
 Use the interactive maps below to explore
 
@@ -226,12 +226,13 @@ G3 <- top_moved_in %>%
     tooltip = "tooltip"
   )
 
-G3
+G3  
+
 
 ```
   
   
-#### What were the top 25 destination cities for those __MOVING AWAY__ from Charlotte during this time?
+#### What were the top 25 destination cities for those __moving away__ from Charlotte during this time?
 
 Just for fun, we could also take a look at which cities Charlotte residents were moving to.
 
