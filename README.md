@@ -1,2 +1,2 @@
 # charlotte-census-data
-Cover several census statistics in Charlotte, NC with interactive maps and demographic charts
+Census population move in / move out (flows) data in Charlotte, NC with interactive maps and demographic charts
