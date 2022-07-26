@@ -15,16 +15,16 @@ editor_options:
 
 ### Census flow data for Charlotte, NC
 
-At the time of this brief analysis, __Charlotte, NC__ was (and has been for the past few years) one of the fastest growing cities in the United States. Most sources report that over 100 people move to CLT every day. If sustained, these rapid migrations can have both desirable and undesirable consequences. An obvious example is the real estate market. Average home prices have more than doubled over the past 7 years: a favorable phenomenon for longtime owners and real estate investors, but burdensome for restaurants, residential newcomers and tenants.
+__Charlotte, NC__ is said to be one of the fastest growing cities in the United States. Most sources report that over 100 people move to Charlotte every day - a sizable number when compared with its historic population. If sustained, these rapid migrations can have both desirable and undesirable consequences. An obvious example is the real estate market. Median mortgage and rent prices more than doubled over the past 10 years: a favorable phenomenon for longtime owners and real estate investors, but burdensome for restaurants, residential newcomers and tenants.
 
-As an 8 year resident of Charlotte, I've also witnessed changes in other areas since I moved here in 2014, such as cultural shifts, growing demographic diversity, infrastructure expansion and several others.
+As an 8-year resident of Charlotte, I've also witnessed changes in other areas since I moved here in 2014, such as cultural shifts, growing demographic diversity, infrastructure expansion and more...
 
 
-Understanding how all these different factors interact and transform a city can be a a complex undertaking and one that's way outside the scope of this analysis; but for starters, sometimes it can be helpful to narrow our focus to a single factor, pull some data, and explore through visualizations - a necessary step before any real statistical modeling can be done.
+Understanding how all of these factors interact and transform a city can be a complex undertaking and one that's way outside the scope of this analysis; but for starters, sometimes it can be helpful to narrow our focus to a single variable, pull some data, and explore through visualizations - a necessary step before any real statistical modeling can be done.
 
-__Culture shifts__ seem difficult to quantify, but for the sake of demonstration, let's see what we can come up with. 
+__Culture shifts__ seem difficult to quantify, but for the sake of demonstration, it will be used for this example. 
 
-Since culture can generally be described by the collective characteristics of a group within a geographical area, then perhaps one approach could be analyzing areas or cities that new Charlotte residents are moving from. If we see unusual patterns or heavy move-in traffic out of cities with known cultural attributes, this could partly aide in describing Charlotte's cultural evolution.
+Since culture can generally be described by the collective characteristics of a group within a geographical area, then perhaps one approach could be analyzing areas or cities that new Charlotte residents are moving from. If there are unusual patterns or heavy move-in traffic out of cities with known cultural attributes, this could partly aide in describing Charlotte's recent cultural evolution.
 
 
 To showcase how this could be done, we'll use the [Tidycencus]('https://cran.r-project.org/web/packages/tidycensus/index.html') package to pull in data from 2015 to 2019 and look at which cities most people moved from over those years. 
@@ -208,7 +208,7 @@ top_moved_in <- CLT_flows %>%
 
 #### What were the top 25 origination cities for those __moving to__ Charlotte during this time?
 
-Use the interactive maps below to explore
+Use the interactive maps below to explore  
 
 ```{r Mapping inflows, echo=FALSE, message=FALSE, out.width = "100%",warning=FALSE}
 
@@ -228,6 +228,11 @@ G3 <- top_moved_in %>%
 
 G3  
 
+
+```
+  
+
+```{r}
 
 ```
   
@@ -266,20 +271,17 @@ G4
 
 ```
 
+
 ### Observations
 
-You can take the analysis in many different directions from here, but right off the bat, we see a few interesting things
+You can take the analysis in many different directions from here, but right off the bat, the maps provide some interesting information
 
-__Moved in__
-
-- Most movers come from the New York City area (more than double next highest city at 44K movers over the 5 yr time period)
-- Top cities are mostly from the North and South East
-
-__Moved out__
-
-- On average, more people (and cities) are moving to Charlotte than away
-- Roughly 4X as many NYC residents moved to Charlotte than vice-versa
-- Raleigh (another fast growing city) appears to be an outlier. More people moved from Charlotte to Raleigh than vice-versa
+- Most metro-movers come from the New York City area (more than double next highest city at 44K movers over the 5-year time period)
+- Top cities are mostly from the North East and South East
+- On average, top origin cities have higher numbers than destination, indicating net growth
+- Roughly 4 times as many NYC residents moved to Charlotte than vice versa
+- Raleigh, NC (another fast growing city) appears to be an outlier. More people moved from Charlotte to Raleigh vice-versa
+- Charlotte residents who move away typically stay closer to the surrounding area, which could likely be the case for most cities in general
 
 
 ```{r, include=FALSE}
@@ -337,11 +339,11 @@ G5
 
 ```
 
-### What other things could we analyze?  
+### What other things could be analyzed?  
 
 #### Potential newcomers  
 
-I was also curious about newcomers. In other words, which cities had no reported estimates or estimates of 0 from 2009 to 2013, that showed up in the 2015 - 2019 estimates
+I was also curious about newcomers. In other words, which cities had no reported estimates or estimates of 0 from 2009 to 2013 (not shown here), that were included in the 2015 - 2019 estimates
 
 ```{r}
 ## what cities reported no movers in from 2009 to 2013, but appear in 2015-2019 estimates
@@ -413,9 +415,9 @@ growth_cities %>%
 
 ### Closing thoughts
 
-In this exercise, there was no definitive conclusion or rigorous statistical analysis performed. However, we were able to quickly identify some interesting trends from a few charts and maps.
+In this exercise, there was no definitive conclusion or rigorous statistical analysis performed. However, we were able to quickly identify some descriptive info from a few charts and maps.
 
-Using the [Tidycencus]('https://cran.r-project.org/web/packages/tidycensus/index.html') package along with sleek visualization libraries such as [Mapview]('https://r-spatial.github.io/mapview/') and  [Mapdeck]('https://symbolixau.github.io/mapdeck/articles/mapdeck.html'), analysts can access a wide array of U.S. Census data and use for exploratory analysis or even feature selection for more advanced modeling.
+Using the [Tidycencus]('https://cran.r-project.org/web/packages/tidycensus/index.html') package along with sleek visualization libraries such as [Mapview]('https://r-spatial.github.io/mapview/') and  [Mapdeck]('https://symbolixau.github.io/mapdeck/articles/mapdeck.html'), analysts can access a wide array of U.S. Census data and use for exploratory analysis or even feature selection when performing more advanced modeling.
 
 
 
