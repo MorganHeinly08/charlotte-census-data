@@ -28,7 +28,7 @@ Since culture can generally be described by the collective characteristics of a 
 
 
 To showcase how this could be done, we'll use the [Tidycencus]('https://cran.r-project.org/web/packages/tidycensus/index.html') package to pull in data from 2015 to 2019 and look at which cities most people moved from over those years. 
-_Note - 1015 to 2019 is the latest 5 year estimates available for these data points._
+_Note 2015 to 2019 is the latest 5 year estimates available for these data points._
 
 ```{r setup, include=FALSE}
 
